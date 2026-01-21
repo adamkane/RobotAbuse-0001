@@ -30,6 +30,14 @@ public class BuildScript
 
         Debug.Log("Building scenes: " + string.Join(", ", scenes));
 
+        // Set 1:1 aspect ratio (600x600) for WebGL canvas
+        PlayerSettings.defaultWebScreenWidth = 600;
+        PlayerSettings.defaultWebScreenHeight = 600;
+        PlayerSettings.productName = "RobotAbuse-0001";
+
+        // Enable antialiasing (4x MSAA)
+        QualitySettings.antiAliasing = 4;
+
         // Configure build options
         BuildPlayerOptions options = new BuildPlayerOptions
         {

@@ -34,6 +34,21 @@ public class SceneSetup
         robot.transform.rotation = Quaternion.identity;
         Debug.Log("Robot instantiated");
 
+        // Apply material with textures
+        Material robotMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Models/Robot_Toy.mat");
+        if (robotMaterial != null)
+        {
+            foreach (Renderer renderer in robot.GetComponentsInChildren<Renderer>())
+            {
+                renderer.sharedMaterial = robotMaterial;
+            }
+            Debug.Log("Applied textured material to robot");
+        }
+        else
+        {
+            Debug.LogWarning("Robot material not found");
+        }
+
         // Add colliders to all mesh renderers
         AddCollidersToRobot(robot);
 
@@ -79,12 +94,13 @@ public class SceneSetup
             }
         }
 
-        // Setup camera
+        // Setup camera - position very close so robot fills ~80% of view
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
-            mainCamera.transform.position = new Vector3(0, 1f, -2f);
-            mainCamera.transform.LookAt(robot.transform);
+            mainCamera.transform.position = new Vector3(0.1f, 0.18f, -0.28f);  // Even closer
+            mainCamera.transform.LookAt(robot.transform.position + Vector3.up * 0.12f);
+            mainCamera.nearClipPlane = 0.01f;  // Allow close-up
 
             // Add camera controller
             var camController = mainCamera.gameObject.AddComponent<CameraController>();

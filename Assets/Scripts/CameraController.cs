@@ -25,10 +25,10 @@ public class CameraController : MonoBehaviour
     public float zoomSpeed = 5f;
 
     [Tooltip("Minimum distance from target")]
-    public float minDistance = 1f;
+    public float minDistance = 0.5f;
 
     [Tooltip("Maximum distance from target")]
-    public float maxDistance = 10f;
+    public float maxDistance = 5f;
 
     private float currentDistance;
     private float currentYaw;
@@ -54,9 +54,9 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            currentDistance = 3f;
-            currentYaw = 0f;
-            currentPitch = 20f;
+            currentDistance = 0.4f;  // Much closer for 80% fill
+            currentYaw = 15f;        // Slight angle
+            currentPitch = 5f;
         }
     }
 

@@ -8,18 +8,28 @@ public class RobotStatus : MonoBehaviour
 {
     [Header("Display Settings")]
     [Tooltip("Font size for the status text")]
-    public int fontSize = 32;
+    public int fontSize = 24;
 
     [Tooltip("Color of the status text")]
-    public Color textColor = Color.white;
+    public Color textColor = new Color(0.1f, 0.1f, 0.1f);  // Dark gray for readability
 
     [Tooltip("Background color for the status box")]
-    public Color backgroundColor = new Color(0, 0, 0, 0.5f);
+    public Color backgroundColor = new Color(1f, 1f, 1f, 0.9f);  // White semi-transparent
+
+    [Tooltip("Border/outline color")]
+    public Color borderColor = new Color(0.3f, 0.3f, 0.3f);  // Medium gray border
 
     private string currentStatus = "Attached";
     private GUIStyle labelStyle;
     private GUIStyle boxStyle;
+    private GUIStyle borderStyle;
+    private GUIStyle fpsStyle;
     private Texture2D backgroundTexture;
+    private Texture2D borderTexture;
+    private Texture2D fpsBackgroundTexture;
+
+    // FPS tracking
+    private float deltaTime = 0f;
 
     void Start()
     {
@@ -27,6 +37,22 @@ public class RobotStatus : MonoBehaviour
         backgroundTexture = new Texture2D(1, 1);
         backgroundTexture.SetPixel(0, 0, backgroundColor);
         backgroundTexture.Apply();
+
+        // Create border texture
+        borderTexture = new Texture2D(1, 1);
+        borderTexture.SetPixel(0, 0, borderColor);
+        borderTexture.Apply();
+
+        // Create FPS background texture (semi-transparent dark)
+        fpsBackgroundTexture = new Texture2D(1, 1);
+        fpsBackgroundTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.5f));
+        fpsBackgroundTexture.Apply();
+    }
+
+    void Update()
+    {
+        // Smooth FPS calculation
+        deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
     }
 
     void OnGUI()
@@ -47,19 +73,45 @@ public class RobotStatus : MonoBehaviour
             boxStyle.normal.background = backgroundTexture;
         }
 
-        // Calculate position (top center)
-        float boxWidth = 250;
-        float boxHeight = 50;
-        float x = (Screen.width - boxWidth) / 2;
-        float y = 20;
+        // Initialize border style
+        if (borderStyle == null)
+        {
+            borderStyle = new GUIStyle(GUI.skin.box);
+            borderStyle.normal.background = borderTexture;
+        }
 
+        // Calculate position (top center) - smaller, cleaner box
+        float boxWidth = 140;
+        float boxHeight = 36;
+        float x = (Screen.width - boxWidth) / 2;
+        float y = 15;
+        float borderWidth = 2;
+
+        Rect borderRect = new Rect(x - borderWidth, y - borderWidth, boxWidth + borderWidth * 2, boxHeight + borderWidth * 2);
         Rect boxRect = new Rect(x, y, boxWidth, boxHeight);
 
-        // Draw background box
+        // Draw border then background
+        GUI.Box(borderRect, "", borderStyle);
         GUI.Box(boxRect, "", boxStyle);
 
-        // Draw status text
-        GUI.Label(boxRect, "Status: " + currentStatus, labelStyle);
+        // Draw status text (just the state, no "Status:" prefix)
+        GUI.Label(boxRect, currentStatus, labelStyle);
+
+        // Draw FPS in thin footer strip
+        if (fpsStyle == null)
+        {
+            fpsStyle = new GUIStyle(GUI.skin.label);
+            fpsStyle.fontSize = 12;
+            fpsStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);  // Light gray
+            fpsStyle.alignment = TextAnchor.MiddleRight;
+            fpsStyle.padding = new RectOffset(0, 8, 0, 0);
+        }
+
+        float fps = 1.0f / deltaTime;
+        float footerHeight = 18;
+        Rect fpsRect = new Rect(0, Screen.height - footerHeight, Screen.width, footerHeight);
+        GUI.Box(fpsRect, "", new GUIStyle { normal = { background = fpsBackgroundTexture } });
+        GUI.Label(fpsRect, string.Format("{0:0} FPS", fps), fpsStyle);
     }
 
     /// <summary>
