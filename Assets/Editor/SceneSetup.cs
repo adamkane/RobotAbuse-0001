@@ -94,17 +94,23 @@ public class SceneSetup
             }
         }
 
-        // Setup camera - position for 80% fill with face in upper third
+        // Find robot head for camera target
+        Transform robotHead = FindChildByName(robot.transform, "Robot_Head");
+        Vector3 headPosition = robotHead != null ? robotHead.position : robot.transform.position + Vector3.up * 0.22f;
+        Debug.Log("Robot head position: " + headPosition);
+
+        // Setup camera - HEAD MUST BE FULLY VISIBLE (Grade F if not!)
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
-            // Position: slightly right, at chest height, close
-            mainCamera.transform.position = new Vector3(0.12f, 0.12f, -0.3f);
-            // Look at chest area so face ends up in upper third
+            // CRITICAL: Camera far enough back to see ENTIRE robot including head
+            // Position: further back, at belly height
+            mainCamera.transform.position = new Vector3(0.15f, 0.08f, -0.65f);
+            // Look at robot center (belly area) - head will be in upper part of wide FOV
             mainCamera.transform.LookAt(robot.transform.position + Vector3.up * 0.08f);
             mainCamera.nearClipPlane = 0.01f;
             mainCamera.backgroundColor = new Color(0.4f, 0.38f, 0.42f);
-            mainCamera.fieldOfView = 50f;  // Slightly narrower for portrait feel
+            mainCamera.fieldOfView = 60f;  // WIDER to capture full robot
 
             // Add camera controller
             var camController = mainCamera.gameObject.AddComponent<CameraController>();

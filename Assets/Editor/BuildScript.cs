@@ -38,6 +38,9 @@ public class BuildScript
         // Enable antialiasing (4x MSAA)
         QualitySettings.antiAliasing = 4;
 
+        // Disable Unity splash screen (requires Pro license, but set anyway)
+        PlayerSettings.SplashScreen.show = false;
+
         // Configure build options
         BuildPlayerOptions options = new BuildPlayerOptions
         {

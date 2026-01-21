@@ -30,6 +30,10 @@ public class CameraController : MonoBehaviour
     [Tooltip("Maximum distance from target")]
     public float maxDistance = 5f;
 
+    [Header("Debug")]
+    [Tooltip("Press G to toggle debug display")]
+    public bool showDebug = true;  // Enabled by default for QA
+
     private float currentDistance;
     private float currentYaw;
     private float currentPitch;
@@ -62,6 +66,12 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
+        // Toggle debug with 'G' key (D conflicts with movement)
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            showDebug = !showDebug;
+        }
+
         if (target == null) return;
 
         // Get input for orbit (WASD or Arrow keys)
@@ -85,5 +95,65 @@ public class CameraController : MonoBehaviour
 
         // Look at target
         transform.LookAt(target);
+    }
+
+    void OnGUI()
+    {
+        if (!showDebug) return;
+
+        GUIStyle style = new GUIStyle(GUI.skin.box);
+        style.fontSize = 10;
+        style.alignment = TextAnchor.UpperLeft;
+        style.normal.textColor = Color.yellow;
+
+        float w = 220, h = 140;
+        Rect rect = new Rect(Screen.width - w - 10, 10, w, h);
+
+        // Find robot head for reference
+        Transform head = null;
+        if (target != null)
+        {
+            head = target.Find("Robot_Head");
+            if (head == null)
+            {
+                foreach (Transform child in target.GetComponentsInChildren<Transform>())
+                {
+                    if (child.name.Contains("Head")) { head = child; break; }
+                }
+            }
+        }
+
+        string debugText = string.Format(
+            "=== Camera Debug [G] ===\n" +
+            "Cam Pos: {0:F2}, {1:F2}, {2:F2}\n" +
+            "Distance: {3:F2}\n" +
+            "Yaw: {4:F1}° Pitch: {5:F1}°\n" +
+            "FOV: {6:F0}°\n" +
+            "---\n" +
+            "Robot Origin: {7:F2}, {8:F2}, {9:F2}\n" +
+            "Head Pos: {10}",
+            transform.position.x, transform.position.y, transform.position.z,
+            currentDistance,
+            currentYaw, currentPitch,
+            Camera.main != null ? Camera.main.fieldOfView : 0,
+            target != null ? target.position.x : 0,
+            target != null ? target.position.y : 0,
+            target != null ? target.position.z : 0,
+            head != null ? string.Format("{0:F2}, {1:F2}, {2:F2}", head.position.x, head.position.y, head.position.z) : "not found"
+        );
+
+        GUI.Box(rect, debugText, style);
+    }
+
+    // Draw origin marker in scene view
+    void OnDrawGizmos()
+    {
+        if (target != null)
+        {
+            // Draw robot origin
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(target.position, 0.05f);
+            Gizmos.DrawLine(target.position, target.position + Vector3.up * 0.3f);
+        }
     }
 }
