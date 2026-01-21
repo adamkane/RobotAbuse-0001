@@ -37,6 +37,9 @@ public class ArmController : MonoBehaviour
     private float dragDepth;
     private Vector3 dragOffset;
 
+    // Physics
+    private Rigidbody armRigidbody;
+
     void Start()
     {
         mainCamera = Camera.main;
@@ -114,6 +117,12 @@ public class ArmController : MonoBehaviour
         isDragging = true;
         dragDepth = mainCamera.WorldToScreenPoint(transform.position).z;
         dragOffset = transform.position - GetMouseWorldPosition();
+
+        // Disable physics while dragging
+        if (armRigidbody != null)
+        {
+            armRigidbody.isKinematic = true;
+        }
     }
 
     void ContinueDrag()
@@ -150,6 +159,14 @@ public class ArmController : MonoBehaviour
             {
                 Reattach();
             }
+            else
+            {
+                // Enable physics - arm will fall
+                if (armRigidbody != null)
+                {
+                    armRigidbody.isKinematic = false;
+                }
+            }
         }
     }
 
@@ -165,6 +182,17 @@ public class ArmController : MonoBehaviour
         isAttached = false;
         transform.SetParent(null);
 
+        // Add Rigidbody for physics if not present
+        if (armRigidbody == null)
+        {
+            armRigidbody = gameObject.AddComponent<Rigidbody>();
+            armRigidbody.mass = 0.5f;
+            armRigidbody.linearDamping = 0.5f;
+            armRigidbody.angularDamping = 0.5f;
+            armRigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        }
+        armRigidbody.isKinematic = true;  // Keep kinematic while dragging
+
         if (statusUI != null)
         {
             statusUI.SetStatus("Detached");
@@ -176,6 +204,14 @@ public class ArmController : MonoBehaviour
     void Reattach()
     {
         isAttached = true;
+
+        // Remove physics
+        if (armRigidbody != null)
+        {
+            Destroy(armRigidbody);
+            armRigidbody = null;
+        }
+
         transform.SetParent(originalParent);
         transform.localPosition = originalLocalPosition;
         transform.localRotation = originalLocalRotation;

@@ -94,13 +94,17 @@ public class SceneSetup
             }
         }
 
-        // Setup camera - position very close so robot fills ~80% of view
+        // Setup camera - position for 80% fill with face in upper third
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
-            mainCamera.transform.position = new Vector3(0.1f, 0.18f, -0.28f);  // Even closer
-            mainCamera.transform.LookAt(robot.transform.position + Vector3.up * 0.12f);
-            mainCamera.nearClipPlane = 0.01f;  // Allow close-up
+            // Position: slightly right, at chest height, close
+            mainCamera.transform.position = new Vector3(0.12f, 0.12f, -0.3f);
+            // Look at chest area so face ends up in upper third
+            mainCamera.transform.LookAt(robot.transform.position + Vector3.up * 0.08f);
+            mainCamera.nearClipPlane = 0.01f;
+            mainCamera.backgroundColor = new Color(0.4f, 0.38f, 0.42f);
+            mainCamera.fieldOfView = 50f;  // Slightly narrower for portrait feel
 
             // Add camera controller
             var camController = mainCamera.gameObject.AddComponent<CameraController>();
@@ -108,16 +112,54 @@ public class SceneSetup
             Debug.Log("CameraController added to main camera");
         }
 
-        // Setup lighting
-        var lights = Object.FindObjectsOfType<Light>();
-        foreach (var light in lights)
+        // Create ground plane for physics
+        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        ground.name = "Ground";
+        ground.transform.position = new Vector3(0, -0.05f, 0);
+        ground.transform.localScale = new Vector3(1, 1, 1);
+        // Make ground slightly darker
+        var groundRenderer = ground.GetComponent<Renderer>();
+        if (groundRenderer != null)
+        {
+            Material groundMat = new Material(Shader.Find("Standard"));
+            groundMat.color = new Color(0.35f, 0.32f, 0.3f);
+            groundRenderer.material = groundMat;
+        }
+        Debug.Log("Ground plane created");
+
+        // Setup 3-point lighting for cinematic look
+        var existingLights = Object.FindObjectsOfType<Light>();
+        foreach (var light in existingLights)
         {
             if (light.type == LightType.Directional)
             {
-                light.transform.rotation = Quaternion.Euler(50, -30, 0);
-                light.intensity = 1.2f;
+                // Convert default light to Key Light
+                light.name = "Key Light";
+                light.transform.rotation = Quaternion.Euler(35, 45, 0);  // Front-right, above
+                light.color = new Color(1f, 0.95f, 0.9f);  // Warm
+                light.intensity = 1.1f;
             }
         }
+
+        // Add Fill Light (front-left, softer)
+        GameObject fillLightObj = new GameObject("Fill Light");
+        Light fillLight = fillLightObj.AddComponent<Light>();
+        fillLight.type = LightType.Directional;
+        fillLight.transform.rotation = Quaternion.Euler(20, -45, 0);
+        fillLight.color = new Color(0.85f, 0.9f, 1f);  // Cool
+        fillLight.intensity = 0.4f;
+
+        // Add Rim Light (behind, for edge separation)
+        GameObject rimLightObj = new GameObject("Rim Light");
+        Light rimLight = rimLightObj.AddComponent<Light>();
+        rimLight.type = LightType.Directional;
+        rimLight.transform.rotation = Quaternion.Euler(15, 180, 0);  // From behind
+        rimLight.color = Color.white;
+        rimLight.intensity = 0.5f;
+
+        // Set ambient light
+        RenderSettings.ambientLight = new Color(0.25f, 0.25f, 0.28f);
+        Debug.Log("3-point lighting setup complete");
 
         // Ensure Scenes folder exists
         if (!Directory.Exists("Assets/Scenes"))

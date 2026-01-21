@@ -80,11 +80,11 @@ public class RobotStatus : MonoBehaviour
             borderStyle.normal.background = borderTexture;
         }
 
-        // Calculate position (top center) - smaller, cleaner box
-        float boxWidth = 140;
-        float boxHeight = 36;
-        float x = (Screen.width - boxWidth) / 2;
-        float y = 15;
+        // Calculate position (top-left corner to avoid head overlap)
+        float boxWidth = 110;
+        float boxHeight = 30;
+        float x = 12;
+        float y = 12;
         float borderWidth = 2;
 
         Rect borderRect = new Rect(x - borderWidth, y - borderWidth, boxWidth + borderWidth * 2, boxHeight + borderWidth * 2);
